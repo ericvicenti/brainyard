@@ -1,20 +1,19 @@
 {
-  "name": "next-expo-solito-monorepo",
+  "name": "@brainyard/root",
   "private": true,
   "workspaces": [
     "apps/*",
     "packages/*"
   ],
   "scripts": {
-    "native": "cd apps/expo && yarn start",
     "watch": "yarn workspaces foreach -pi run watch",
     "vercel:install": "yarn set version 3.5 && yarn install",
-    "dev": "yarn build && cd apps/next && yarn next",
-    "main:build": "yarn workspace next-app build",
-    "main:run": "yarn workspace next-app serve",
+    "dev": "yarn build && cd apps/desktop && yarn next",
+    "main:build": "yarn workspace @brainyard/desktop build",
+    "main:start": "yarn workspace @brainyard/desktop serve",
     "fix": "manypkg fix",
     "postinstall": "yarn check-deps && yarn build",
-    "build": "yarn workspaces foreach --exclude next-app run build",
+    "build": "yarn workspaces foreach --exclude @brainyard/desktop run build",
     "upgrade:tamagui": "manypkg upgrade tamagui && manypkg upgrade @tamagui && manypkg upgrade tamagui-loader && manypkg upgrade react-native-web-lite",
     "check-deps": "check-dependency-version-consistency ."
   },
