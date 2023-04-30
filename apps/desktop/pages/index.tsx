@@ -1,13 +1,15 @@
-import { HomeScreen } from 'app/features/home/screen'
+import { YStack, Heading } from '@my/ui'
 import Head from 'next/head'
 
 export default function Page() {
   return (
     <>
       <Head>
-        <title>Home</title>
+        <title>Brainyard</title>
       </Head>
-      <HomeScreen />
+      <YStack>
+        <Heading>Coming Soon</Heading>
+      </YStack>
     </>
   )
 }

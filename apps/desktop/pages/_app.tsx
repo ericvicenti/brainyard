@@ -7,14 +7,13 @@ import { NextThemeProvider, useRootTheme } from '@tamagui/next-theme'
 import { Provider } from 'app/provider'
 import Head from 'next/head'
 import React from 'react'
-import type { SolitoAppProps } from 'solito'
 
-function MyApp({ Component, pageProps }: SolitoAppProps) {
+function MyApp({ Component, pageProps }: { Component: any; pageProps: any }) {
   return (
     <>
       <Head>
-        <title>Tamagui Example App</title>
-        <meta name="description" content="Tamagui, Solito, Expo & Next.js" />
+        <title>Brainyard</title>
+        <meta name="description" content="A bicycle for your minds" />
         <link rel="icon" href="/favicon.ico" />
       </Head>
       <ThemeProvider>
