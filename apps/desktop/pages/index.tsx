@@ -1,5 +1,6 @@
-import { YStack, Heading } from '@my/ui'
+import { Heading, YStack } from '@my/ui'
 import Head from 'next/head'
+import { Game } from '../src/Game'
 
 export default function Page() {
   return (
@@ -7,8 +8,8 @@ export default function Page() {
       <Head>
         <title>Brainyard</title>
       </Head>
-      <YStack>
-        <Heading>Coming Soon</Heading>
+      <YStack minHeight="100vh">
+        <Game />
       </YStack>
     </>
   )

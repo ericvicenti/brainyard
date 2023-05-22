@@ -1,9 +1,7 @@
 {
   "name": "brainyard",
   "version": "0.0.1",
-  "bin": {
-    "brainyard": "./brainyard.js"
-  },
+  "bin": "./brainyard.js",
   "dependencies": {
     "open": "^9.1.0"
   }

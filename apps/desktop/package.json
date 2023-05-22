@@ -10,8 +10,8 @@
     "lint": "next lint"
   },
   "dependencies": {
-    "@tamagui/next-theme": "1.20.7",
     "@my/ui": "*",
+    "@tamagui/next-theme": "1.20.7",
     "app": "*",
     "next": "^13.2.4",
     "raf": "^3.4.1",
