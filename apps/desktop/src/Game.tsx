@@ -1,35 +1,48 @@
 import React, { useState } from 'react'
-import { Canvas, useFrame } from 'react-three-fiber'
+import { Canvas } from 'react-three-fiber'
 import { BufferAttribute, Vector3 } from 'three'
 import { useKeyPress } from './useKeyPress'
 import { LineSegments } from 'three'
-import { extend, useLoader } from 'react-three-fiber'
+import { extend } from 'react-three-fiber'
 import { LineBasicMaterial, BufferGeometry } from 'three'
+import { PerspectiveCamera, Text } from '@react-three/drei'
 
 // 1 unit of distance = 1 meter
 
 function MeCharacter() {
   const [position, setPosition] = useState<Vector3>(new Vector3(0, 0.5, 0))
 
-  const upPress = useKeyPress('w')
-  const downPress = useKeyPress('s')
-  const leftPress = useKeyPress('a')
-  const rightPress = useKeyPress('d')
-
-  useFrame(() => {
-    if (upPress || downPress || leftPress || rightPress)
-      console.log('ahaha move', { upPress, downPress, leftPress, rightPress })
-    if (upPress) setPosition((position) => new Vector3(position.x, position.y + 1, position.z))
-    if (downPress) setPosition((position) => new Vector3(position.x, position.y - 1, position.z))
-    if (leftPress) setPosition((position) => new Vector3(position.x - 1, position.y, position.z))
-    if (rightPress) setPosition((position) => new Vector3(position.x + 1, position.y, position.z))
-  })
+  function moveUp(count = 1) {
+    setPosition((position) => new Vector3(position.x, position.y + count, position.z))
+  }
+  function moveDown(count = 1) {
+    setPosition((position) => new Vector3(position.x, position.y - count, position.z))
+  }
+  function moveLeft(count = 1) {
+    setPosition((position) => new Vector3(position.x - count, position.y, position.z))
+  }
+  function moveRight(count = 1) {
+    setPosition((position) => new Vector3(position.x + count, position.y, position.z))
+  }
+  useKeyPress('w', moveUp, 5)
+  useKeyPress('s', moveDown, 5)
+  useKeyPress('a', moveLeft, 5)
+  useKeyPress('d', moveRight, 5)
 
   return (
-    <mesh position={position}>
-      <sphereBufferGeometry attach="geometry" args={[0.5, 30, 30]} />
-      <meshStandardMaterial attach="material" color="blue" />
-    </mesh>
+    <>
+      <PerspectiveCamera
+        makeDefault
+        position={[position.x, position.y, 500]}
+        fov={3}
+        near={0.1}
+        far={1000}
+      />
+      <mesh position={position}>
+        <sphereBufferGeometry attach="geometry" args={[0.5, 30, 30]} />
+        <meshStandardMaterial attach="material" color="#506da3" />
+      </mesh>
+    </>
   )
 }
 
@@ -52,20 +65,34 @@ const CustomGridHelper = ({ size = 100, divisions = 100, color = 'gray' }) => {
 
 function Ground() {
   return (
-    <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0, 0]}>
-      <planeBufferGeometry attach="geometry" args={[100, 100]} />
+    <mesh rotation={[-Math.PI / 2, Math.PI / 4, 0]} position={[0, 0, 0]}>
       <CustomGridHelper />
     </mesh>
   )
 }
 
+function HelloWorldText() {
+  return (
+    <Text
+      position={[0, 5, 0.5]}
+      rotation={[0, 0, 0]}
+      fontSize={3}
+      color="#227871"
+      textAlign="center"
+    >
+      Brainplay{'\n'}Coming Soon
+    </Text>
+  )
+}
+
 export function Game() {
   return (
-    <Canvas style={{ flexGrow: 1, backgroundColor: 'green' }}>
+    <Canvas style={{ flexGrow: 1 }}>
       <ambientLight intensity={0.5} />
-      <pointLight position={[10, 10, 10]} />
       <Ground />
+
       <MeCharacter />
+      <HelloWorldText />
     </Canvas>
   )
 }

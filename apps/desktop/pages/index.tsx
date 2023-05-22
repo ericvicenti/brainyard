@@ -8,9 +8,18 @@ export default function Page() {
       <Head>
         <title>Brainyard</title>
       </Head>
-      <YStack minHeight="100vh">
+      <div
+        style={{
+          display: 'flex',
+          position: 'absolute',
+          top: 0,
+          bottom: 0,
+          left: 0,
+          right: 0,
+        }}
+      >
         <Game />
-      </YStack>
+      </div>
     </>
   )
 }

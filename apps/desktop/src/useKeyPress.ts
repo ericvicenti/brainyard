@@ -1,29 +1,39 @@
-import { useState, useEffect } from 'react';
+import { MutableRefObject, useEffect, useRef } from 'react'
 
-export function useKeyPress(targetKey: string) {
-  const [keyPressed, setKeyPressed] = useState(false);
+// Custom hook to track the state of a key press
+export const useKeyPress = (
+  targetKey: string,
+  handler: (count: number) => void,
+  maxSpeed: number // in m/s
+) => {
+  let interval: MutableRefObject<NodeJS.Timeout | number | null> = useRef(null)
 
-  function downHandler({ key }: KeyboardEvent) {
+  // Event handlers for key up and key down
+  const downHandler = ({ key }: { key: string }) => {
     if (key === targetKey) {
-      setKeyPressed(true);
+      handler(1)
+      interval.current = setInterval(handler, 1000 / maxSpeed)
     }
   }
 
-  const upHandler = ({ key }: KeyboardEvent) => {
-    if (key === targetKey) {
-      setKeyPressed(false);
+  const upHandler = ({ key }: { key: string }) => {
+    if (key === targetKey && interval) {
+      clearInterval(interval.current || undefined)
+      interval.current = null
     }
-  };
+  }
 
+  // Bind and unbind events
   useEffect(() => {
-    window.addEventListener('keydown', downHandler);
-    window.addEventListener('keyup', upHandler);
+    window.addEventListener('keydown', downHandler)
+    window.addEventListener('keyup', upHandler)
 
     return () => {
-      window.removeEventListener('keydown', downHandler);
-      window.removeEventListener('keyup', upHandler);
-    };
-  }, []);
-
-  return keyPressed;
+      window.removeEventListener('keydown', downHandler)
+      window.removeEventListener('keyup', upHandler)
+      if (interval) {
+        clearInterval(interval.current || undefined)
+      }
+    }
+  }, []) // Empty array ensures effect is only run on mount and unmount
 }
