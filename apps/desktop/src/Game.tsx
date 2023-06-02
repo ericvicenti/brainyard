@@ -1,7 +1,6 @@
-import React, { useState } from 'react'
+import React, { useEffect, useReducer, useRef } from 'react'
 import { Canvas } from 'react-three-fiber'
 import { BufferAttribute, Vector3 } from 'three'
-import { useKeyPress } from './useKeyPress'
 import { LineSegments } from 'three'
 import { extend } from 'react-three-fiber'
 import { LineBasicMaterial, BufferGeometry } from 'three'
@@ -9,25 +8,77 @@ import { PerspectiveCamera, Text } from '@react-three/drei'
 
 // 1 unit of distance = 1 meter
 
-function MeCharacter() {
-  const [position, setPosition] = useState<Vector3>(new Vector3(0, 0.5, 0))
+type MoveAction = {
+  type: 'move'
+  vector: Vector3
+}
 
-  function moveUp(count = 1) {
-    setPosition((position) => new Vector3(position.x, position.y + count, position.z))
+type JumpAction = {
+  type: 'jump'
+  vector: Vector3
+}
+
+function usePosition() {
+  const velocity = useRef<[null | 'up' | 'down', null | 'left' | 'right']>([null, null])
+  const [position, dispatchPosition] = useReducer(
+    (state: Vector3, action: MoveAction | JumpAction) => {
+      if (action.type === 'move')
+        return new Vector3(
+          state.x + action.vector.x,
+          state.y + action.vector.y,
+          state.z + action.vector.z
+        )
+      else if (action.type === 'jump') return action.vector
+      else return state
+    },
+    new Vector3(0, 0.5, 0)
+  )
+  const downHandler = ({ code }: { code: string }) => {
+    if (code === 'KeyW') {
+      velocity.current = ['up', velocity.current[1]]
+    }
+    if (code === 'KeyS') {
+      velocity.current = ['down', velocity.current[1]]
+    }
+    if (code === 'KeyA') {
+      velocity.current = [velocity.current[0], 'left']
+    }
+    if (code === 'KeyD') {
+      velocity.current = [velocity.current[0], 'right']
+    }
   }
-  function moveDown(count = 1) {
-    setPosition((position) => new Vector3(position.x, position.y - count, position.z))
+  const upHandler = ({ code }: { code: string }) => {
+    if (code === 'KeyW' || code === 'KeyS') {
+      velocity.current = [null, velocity.current[1]]
+    }
+    if (code === 'KeyA' || code === 'KeyD') {
+      velocity.current = [velocity.current[0], null]
+    }
   }
-  function moveLeft(count = 1) {
-    setPosition((position) => new Vector3(position.x - count, position.y, position.z))
-  }
-  function moveRight(count = 1) {
-    setPosition((position) => new Vector3(position.x + count, position.y, position.z))
-  }
-  useKeyPress('w', moveUp, 5)
-  useKeyPress('s', moveDown, 5)
-  useKeyPress('a', moveLeft, 5)
-  useKeyPress('d', moveRight, 5)
+
+  useEffect(() => {
+    window.addEventListener('keydown', downHandler)
+    window.addEventListener('keyup', upHandler)
+
+    let ticks = setInterval(() => {
+      const [ud, lr] = velocity.current
+      const y = ud === 'up' ? 1 : ud === 'down' ? -1 : 0
+      const x = lr === 'left' ? -1 : lr === 'right' ? 1 : 0
+      dispatchPosition({ type: 'move', vector: new Vector3(x, y, 0) })
+    }, 100)
+
+    return () => {
+      clearInterval(ticks)
+
+      window.removeEventListener('keydown', downHandler)
+      window.removeEventListener('keyup', upHandler)
+    }
+  }, []) // Empty array ensures effect is only run on mount and unmount
+  return position
+}
+
+function MeCharacter() {
+  const position = usePosition()
 
   return (
     <>
@@ -74,6 +125,7 @@ function Ground() {
 function HelloWorldText() {
   return (
     <Text
+      font="http://localhost:3000/font/inter-400.woff"
       position={[0, 5, 0.5]}
       rotation={[0, 0, 0]}
       fontSize={3}
