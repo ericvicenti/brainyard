@@ -7,6 +7,7 @@ import { LineBasicMaterial, BufferGeometry } from 'three'
 import { PerspectiveCamera, Text } from '@react-three/drei'
 import { OverlayProvider } from './Overlay'
 import { InteractionProvider } from './Interaction'
+import { useServerConnection } from './Connection'
 
 // 1 unit of distance = 1 meter
 
@@ -139,17 +140,24 @@ function HelloWorldText() {
   )
 }
 
+function GameRoom({ id }: { id: string }) {
+  const server = useServerConnection()
+  return (
+    <Canvas style={{ flexGrow: 1 }}>
+      <ambientLight intensity={0.5} />
+      <Ground />
+
+      <MeCharacter />
+      <HelloWorldText />
+    </Canvas>
+  )
+}
+
 export function Game() {
   return (
     <InteractionProvider>
       <OverlayProvider>
-        <Canvas style={{ flexGrow: 1 }}>
-          <ambientLight intensity={0.5} />
-          <Ground />
-
-          <MeCharacter />
-          <HelloWorldText />
-        </Canvas>
+        <GameRoom id="main" />
       </OverlayProvider>
     </InteractionProvider>
   )

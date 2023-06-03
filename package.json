@@ -8,7 +8,7 @@
   "scripts": {
     "watch": "yarn workspaces foreach -pi run watch",
     "vercel:install": "yarn set version 3.5 && yarn install",
-    "dev": "yarn build && cd apps/desktop && yarn next",
+    "dev": "yarn build && cd apps/desktop && yarn dev",
     "main:build": "yarn workspace @brainyard/desktop build",
     "main:start": "yarn workspace @brainyard/desktop serve",
     "fix": "manypkg fix",
