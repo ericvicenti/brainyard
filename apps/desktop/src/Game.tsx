@@ -1,10 +1,12 @@
-import React, { useEffect, useReducer, useRef } from 'react'
+import React, { ReactNode, createContext, useContext, useEffect, useReducer, useRef } from 'react'
 import { Canvas } from 'react-three-fiber'
 import { BufferAttribute, Vector3 } from 'three'
 import { LineSegments } from 'three'
 import { extend } from 'react-three-fiber'
 import { LineBasicMaterial, BufferGeometry } from 'three'
 import { PerspectiveCamera, Text } from '@react-three/drei'
+import { OverlayProvider } from './Overlay'
+import { InteractionProvider } from './Interaction'
 
 // 1 unit of distance = 1 meter
 
@@ -139,12 +141,16 @@ function HelloWorldText() {
 
 export function Game() {
   return (
-    <Canvas style={{ flexGrow: 1 }}>
-      <ambientLight intensity={0.5} />
-      <Ground />
+    <InteractionProvider>
+      <OverlayProvider>
+        <Canvas style={{ flexGrow: 1 }}>
+          <ambientLight intensity={0.5} />
+          <Ground />
 
-      <MeCharacter />
-      <HelloWorldText />
-    </Canvas>
+          <MeCharacter />
+          <HelloWorldText />
+        </Canvas>
+      </OverlayProvider>
+    </InteractionProvider>
   )
 }
