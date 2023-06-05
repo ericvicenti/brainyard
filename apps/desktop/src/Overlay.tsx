@@ -2,6 +2,7 @@ import { FC, ReactNode, useCallback, useMemo, useState } from 'react'
 import { Button, Text, XStack } from '@my/ui'
 import { HelpCircle, MessageCircle, Sigma, PlusCircle, MinusCircle } from '@tamagui/lucide-icons'
 import { useKeyInteractions } from './Interaction'
+import { dispatch } from './Connection'
 
 const HUD_BAR_HEIGHT = 100
 const HUD_PADDING = 8
@@ -30,7 +31,14 @@ function useInventory(): InventoryContent {
     {
       type: 'button',
       onPress: () => {
-        alert('help')
+        dispatch({
+          type: 'WriteFile',
+          path: '/Users/ericvicenti/.brainyard',
+          value: 'Server Data',
+        }).catch((e) => {
+          alert('!')
+          console.error(e)
+        })
       },
       label: 'Help',
       icon: HelpCircle,

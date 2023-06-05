@@ -1,4 +1,5 @@
 import { useEffect } from 'react'
+import { ActionType, ServerActionResponse, ServerActionRequest } from 'server/dispatch'
 
 export function useServerConnection() {
   useEffect(() => {
@@ -18,4 +19,18 @@ export function useServerConnection() {
     }
   }, [])
   return {}
+}
+
+export async function dispatch<AT extends ActionType>(
+  action: ServerActionRequest<AT>
+): Promise<ServerActionResponse<AT>> {
+  const res = await fetch('http://localhost:3000/dispatch', {
+    method: 'post',
+    body: JSON.stringify(action),
+    headers: {
+      'Content-Type': 'application/json',
+    },
+  })
+  const body = await res.json()
+  return body
 }

@@ -2,6 +2,8 @@ import express, { Request, Response } from 'express'
 import next from 'next'
 import WebSocket from 'ws'
 import { IncomingMessage, createServer } from 'http'
+import bodyParser from 'body-parser'
+import { ServerDispatch } from './dispatch'
 
 const dev = process.env.NODE_ENV !== 'production'
 const app = next({ dev })
@@ -18,6 +20,22 @@ async function startServer() {
       console.log('message from client', JSON.parse(data.toString('utf-8')))
     })
     connection.send(JSON.stringify({ hello: 'from the server' }))
+  })
+  server.post('/dispatch', bodyParser.json(), (req, res) => {
+    const requestAction = req.body
+    ServerDispatch(requestAction)
+      .then((response) => {
+        res.setHeader('content-type', 'application/json')
+        res.send(JSON.stringify(response || null))
+      })
+      .catch((e) => {
+        res.statusCode = 500
+        res.send(
+          JSON.stringify({
+            message: e.message,
+          })
+        )
+      })
   })
   server.all('*', (req: Request, res: Response) => {
     return handle(req, res)
