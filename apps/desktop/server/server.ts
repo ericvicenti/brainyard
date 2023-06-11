@@ -145,7 +145,8 @@ async function startServer() {
 
 startServer()
   .then(() => {
-    console.log('Brainyard Started on http://localhost:3000/')
+    // careful not to update this line! the launcher checks for "ready - started server on"
+    console.log(`Brainyard ready - started server on http://localhost:${port}/`)
   })
   .catch((e) => {
     console.error('Brainyard')

@@ -6,7 +6,7 @@
     "dev": "ts-node --project tsconfig.server.json server/server.ts",
     "build": "cd ../.. && yarn build && cd apps/desktop && TAMAGUI_TARGET=web next build",
     "start": "next start",
-    "serve": "NODE_ENV=production next start --port 48888",
+    "serve": "NODE_ENV=production PORT=48888 ts-node --project tsconfig.server.json server/server.ts",
     "lint": "next lint"
   },
   "dependencies": {
