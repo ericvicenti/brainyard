@@ -1,4 +1,4 @@
-import React, { ReactNode, createContext, useContext, useEffect, useReducer, useRef } from 'react'
+import React, { ReactNode, useEffect, useReducer, useState } from 'react'
 import { Canvas } from 'react-three-fiber'
 import { BufferAttribute, Vector3 } from 'three'
 import { LineSegments } from 'three'
@@ -7,7 +7,7 @@ import { LineBasicMaterial, BufferGeometry } from 'three'
 import { PerspectiveCamera, Text } from '@react-three/drei'
 import { OverlayProvider } from './Overlay'
 import { InteractionProvider, useDirections } from './Interaction'
-import { useServerConnection } from './Connection'
+import { ServerConnection, useServerConnection } from './Connection'
 
 // 1 unit of distance = 1 meter
 
@@ -86,7 +86,7 @@ function Ground() {
   )
 }
 
-function HelloWorldText() {
+function FloorText({ children }: { children: ReactNode }) {
   return (
     <Text
       font="http://localhost:3000/font/inter-400.woff"
@@ -96,29 +96,47 @@ function HelloWorldText() {
       color="#227871"
       textAlign="center"
     >
-      Brainplay{'\n'}Coming Soon
+      {children}
     </Text>
   )
 }
 
-function GameRoom({ id }: { id: string }) {
+function WelcomeText() {
+  return <FloorText>Brainplay{'\n'}Coming Soon</FloorText>
+}
+
+function useRoom(server: ServerConnection, roomId: string) {
+  let [state, setState] = useState(undefined)
+  useEffect(() => {
+    return server.subscribe(`Room:${roomId}`, (room) => {
+      setState(room)
+    })
+  }, [server, roomId])
+  return {
+    state,
+  }
+}
+
+function Room({ id }: { id: string }) {
   const server = useServerConnection()
+  const room = useRoom(server, id)
+
   return (
     <Canvas style={{ flexGrow: 1 }}>
       <ambientLight intensity={0.5} />
       <Ground />
-
+      {/* <FloorText>{JSON.stringify(room.state)}</FloorText> */}
       <MeCharacter />
-      <HelloWorldText />
+      <WelcomeText />
     </Canvas>
   )
 }
 
-export function Game() {
+export function Brainyard() {
   return (
     <InteractionProvider>
       <OverlayProvider>
-        <GameRoom id="main" />
+        <Room id="HomeRoom" />
       </OverlayProvider>
     </InteractionProvider>
   )

@@ -1,6 +1,5 @@
-import { Heading, YStack } from '@my/ui'
 import Head from 'next/head'
-import { Game } from '../src/Game'
+import { Brainyard } from '../src/Game'
 
 export default function Page() {
   return (
@@ -18,7 +17,7 @@ export default function Page() {
           right: 0,
         }}
       >
-        <Game />
+        <Brainyard />
       </div>
     </>
   )

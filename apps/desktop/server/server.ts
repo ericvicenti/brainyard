@@ -4,23 +4,110 @@ import WebSocket from 'ws'
 import { IncomingMessage, createServer } from 'http'
 import bodyParser from 'body-parser'
 import { ServerDispatch } from './dispatch'
+import { nanoid } from 'nanoid'
 
 const dev = process.env.NODE_ENV !== 'production'
 const app = next({ dev })
 const handle = app.getRequestHandler()
 const port = process.env.PORT || 3000
 
+export type SubscribeMessage = {
+  type: 'subscribe'
+  channel: string
+}
+
+export type UnsubscribeMessage = {
+  type: 'unsubscribe'
+  channel: string
+}
+
+export type ClientMessage = SubscribeMessage | UnsubscribeMessage
+
+export type SubscriptionUpdate = {
+  type: 'update'
+  channel: string
+  data: any
+}
+
+export type ServerMessage = SubscriptionUpdate
+
 async function startServer() {
   const server = express()
   const httpServer = createServer(server)
   const wss = new WebSocket.Server({ noServer: true })
+
+  const subbableStates: Record<string, any> = {
+    'Room:HomeRoom': {
+      clock: 0,
+    },
+  }
+  const subbableHandlers: Record<string, Record<string, (value: any) => void>> = {}
+
+  function updateState(channel: string, state: any) {
+    subbableStates[channel] = state
+    if (subbableHandlers[channel]) {
+      Object.values(subbableHandlers[channel]).forEach((handler) => {
+        handler(state)
+      })
+    }
+  }
+
+  setInterval(() => {
+    const clock = subbableStates['Room:HomeRoom'].clock
+    updateState('Room:HomeRoom', { clock: clock + 1 })
+  }, 500)
+
+  const clients: Record<
+    string,
+    {
+      id: string
+      send: (msg: ServerMessage) => void
+    }
+  > = {}
+
   wss.addListener('connection', (connection) => {
-    // console.log('Socket connected!')
+    const clientId = nanoid()
+
+    function sendClient(msg: ServerMessage) {
+      connection.send(JSON.stringify(msg))
+    }
+    function handleClientMessage(msg: ClientMessage) {
+      if (msg.type === 'subscribe') {
+        sendClient({
+          type: 'update',
+          channel: msg.channel,
+          data: subbableStates[msg.channel],
+        })
+        subbableHandlers[msg.channel] = subbableHandlers[msg.channel] || {}
+        subbableHandlers[msg.channel][clientId] = () => {
+          sendClient({
+            type: 'update',
+            channel: msg.channel,
+            data: subbableStates[msg.channel],
+          })
+        }
+      } else if (msg.type === 'unsubscribe') {
+        if (subbableHandlers[msg.channel][clientId]) {
+          delete subbableHandlers[msg.channel][clientId]
+        }
+      }
+    }
+
     connection.on('message', (data) => {
-      console.log('message from client', JSON.parse(data.toString('utf-8')))
+      const clientMessage: ClientMessage = JSON.parse(data.toString('utf-8'))
+      handleClientMessage(clientMessage)
     })
-    connection.send(JSON.stringify({ hello: 'from the server' }))
+
+    clients[clientId] = {
+      id: clientId,
+      send: sendClient,
+    }
+
+    connection.on('close', () => {
+      delete clients[clientId]
+    })
   })
+
   server.post('/dispatch', bodyParser.json(), (req, res) => {
     const requestAction = req.body
     ServerDispatch(requestAction)
@@ -37,6 +124,7 @@ async function startServer() {
         )
       })
   })
+
   server.all('*', (req: Request, res: Response) => {
     return handle(req, res)
   })
