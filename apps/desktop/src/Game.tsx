@@ -6,7 +6,7 @@ import { extend } from 'react-three-fiber'
 import { LineBasicMaterial, BufferGeometry } from 'three'
 import { PerspectiveCamera, Text } from '@react-three/drei'
 import { OverlayProvider } from './Overlay'
-import { InteractionProvider } from './Interaction'
+import { InteractionProvider, useDirections } from './Interaction'
 import { useServerConnection } from './Connection'
 
 // 1 unit of distance = 1 meter
@@ -22,7 +22,6 @@ type JumpAction = {
 }
 
 function usePosition() {
-  const velocity = useRef<[null | 'up' | 'down', null | 'left' | 'right']>([null, null])
   const [position, dispatchPosition] = useReducer(
     (state: Vector3, action: MoveAction | JumpAction) => {
       if (action.type === 'move')
@@ -36,47 +35,9 @@ function usePosition() {
     },
     new Vector3(0, 0.5, 0)
   )
-  const downHandler = ({ code }: { code: string }) => {
-    if (code === 'KeyW') {
-      velocity.current = ['up', velocity.current[1]]
-    }
-    if (code === 'KeyS') {
-      velocity.current = ['down', velocity.current[1]]
-    }
-    if (code === 'KeyA') {
-      velocity.current = [velocity.current[0], 'left']
-    }
-    if (code === 'KeyD') {
-      velocity.current = [velocity.current[0], 'right']
-    }
-  }
-  const upHandler = ({ code }: { code: string }) => {
-    if (code === 'KeyW' || code === 'KeyS') {
-      velocity.current = [null, velocity.current[1]]
-    }
-    if (code === 'KeyA' || code === 'KeyD') {
-      velocity.current = [velocity.current[0], null]
-    }
-  }
-
-  useEffect(() => {
-    window.addEventListener('keydown', downHandler)
-    window.addEventListener('keyup', upHandler)
-
-    let ticks = setInterval(() => {
-      const [ud, lr] = velocity.current
-      const y = ud === 'up' ? 1 : ud === 'down' ? -1 : 0
-      const x = lr === 'left' ? -1 : lr === 'right' ? 1 : 0
-      dispatchPosition({ type: 'move', vector: new Vector3(x, y, 0) })
-    }, 100)
-
-    return () => {
-      clearInterval(ticks)
-
-      window.removeEventListener('keydown', downHandler)
-      window.removeEventListener('keyup', upHandler)
-    }
-  }, []) // Empty array ensures effect is only run on mount and unmount
+  useDirections((x, y) => {
+    dispatchPosition({ type: 'move', vector: new Vector3(x, y, 0) })
+  })
   return position
 }
 
