@@ -1,16 +1,16 @@
-import { useEffect, useRef } from 'react'
+import { useEffect, useMemo, useRef } from 'react'
 import { ActionType, ServerActionResponse, ServerActionRequest } from 'server/dispatch'
 import { ClientMessage, ServerMessage } from 'server/server'
 
 export type ServerConnection = ReturnType<typeof useServerConnection>
 
-export function useServerConnection() {
+export function useServerConnection(server: string) {
   const send = useRef<(message: ClientMessage) => void>(() => {})
   const subscribers = useRef<Record<string, Set<(value: any) => void>>>({})
   const states = useRef<Record<string, any>>({})
 
   useEffect(() => {
-    const socket = new WebSocket('ws://localhost:3000/game')
+    const socket = new WebSocket(`ws://${server}/game`)
     socket.addEventListener('open', () => {
       send.current = (message: ClientMessage) => {
         socket.send(JSON.stringify(message))
@@ -32,21 +32,25 @@ export function useServerConnection() {
       send.current = () => {}
       socket.close()
     }
-  }, [])
-  return {
-    dispatch,
-    subscribe: (channel: string, handler: (value: any) => void) => {
-      subscribers.current[channel] = subscribers.current[channel] || new Set()
-      subscribers.current[channel].add(handler)
-      if (states.current[channel] !== undefined) handler(states.current[channel])
-      send.current({ type: 'subscribe', channel })
-      return () => {
-        if (!subscribers.current[channel]) return
-        subscribers.current[channel].delete(handler)
-        if (subscribers.current[channel].size === 0) send.current({ type: 'unsubscribe', channel })
-      }
-    },
-  }
+  }, [server])
+  return useMemo(
+    () => ({
+      dispatch,
+      subscribe: (channel: string, handler: (value: any) => void) => {
+        subscribers.current[channel] = subscribers.current[channel] || new Set()
+        subscribers.current[channel].add(handler)
+        if (states.current[channel] !== undefined) handler(states.current[channel])
+        send.current({ type: 'subscribe', channel })
+        return () => {
+          if (!subscribers.current[channel]) return
+          subscribers.current[channel].delete(handler)
+          if (subscribers.current[channel].size === 0)
+            send.current({ type: 'unsubscribe', channel })
+        }
+      },
+    }),
+    []
+  )
 }
 
 export async function dispatch<AT extends ActionType>(

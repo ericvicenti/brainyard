@@ -17,7 +17,9 @@ export default function Page() {
           right: 0,
         }}
       >
-        <Brainyard />
+        <Brainyard
+          server={process.env.NODE_ENV === 'development' ? 'localhost:3000' : 'localhost:4888'}
+        />
       </div>
     </>
   )

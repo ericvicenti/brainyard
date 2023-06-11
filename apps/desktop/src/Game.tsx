@@ -108,18 +108,19 @@ function WelcomeText() {
 function useRoom(server: ServerConnection, roomId: string) {
   let [state, setState] = useState(undefined)
   useEffect(() => {
-    return server.subscribe(`Room:${roomId}`, (room) => {
-      setState(room)
-    })
+    return server.subscribe(
+      `Room:${roomId}`,
+      setState // always provide a stable function reference to subscribe
+    )
   }, [server, roomId])
   return {
     state,
   }
 }
 
-function Room({ id }: { id: string }) {
-  const server = useServerConnection()
-  const room = useRoom(server, id)
+function Room({ id, server }: { id: string; server: string }) {
+  const connection = useServerConnection(server)
+  const room = useRoom(connection, id)
 
   return (
     <Canvas style={{ flexGrow: 1 }}>
@@ -132,11 +133,11 @@ function Room({ id }: { id: string }) {
   )
 }
 
-export function Brainyard() {
+export function Brainyard({ server }: { server: string }) {
   return (
     <InteractionProvider>
       <OverlayProvider>
-        <Room id="HomeRoom" />
+        <Room id="HomeRoom" server={server} />
       </OverlayProvider>
     </InteractionProvider>
   )
